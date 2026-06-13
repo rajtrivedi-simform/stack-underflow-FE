@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '../../utils/cn';
 
 /* ─── Types ────────────────────────────────────────────────── */
@@ -112,6 +112,8 @@ const ComplianceItem = ({ icon, label, status }: ComplianceItemProps) => (
 
 /* ─── Page ──────────────────────────────────────────────────── */
 const ExecutiveSummaryPage = (): React.ReactElement => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
   return (
     <div className="p-md space-y-md">
       {/* Page header */}
@@ -122,9 +124,18 @@ const ExecutiveSummaryPage = (): React.ReactElement => {
             Real-time overview of your business assets and eligibility.
           </p>
         </div>
-        <div className="text-right shrink-0">
-          <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Last Updated</p>
-          <p className="font-body-md text-body-md font-semibold text-on-surface">Today, 10:45 AM</p>
+        <div className="flex flex-col items-end gap-md shrink-0">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="flex items-center gap-sm px-md py-xs bg-primary text-white font-title-md text-[14px] font-semibold rounded-xl hover:bg-primary-container active:scale-[0.98] transition-all duration-200 shadow-lg shadow-primary/20"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            New Application
+          </button>
+          <div className="text-right">
+            <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Last Updated</p>
+            <p className="font-body-md text-body-md font-semibold text-on-surface">Today, 10:45 AM</p>
+          </div>
         </div>
       </div>
 

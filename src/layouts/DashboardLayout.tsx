@@ -1,6 +1,8 @@
-import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { cn } from '../utils/cn';
+import React, { useState, useRef, useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { cn } from "../utils/cn";
+import { useAuthContext } from "../context/AuthContext";
+import { authService } from "../services/auth.service";
 
 const navItems = [
   { label: 'Dashboard', icon: 'dashboard', to: '/dashboard' },
@@ -10,15 +12,35 @@ const navItems = [
 ];
 
 const DashboardLayout = (): React.ReactElement => {
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { clearAuth } = useAuthContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-surface flex">
+    <div className="h-screen bg-surface flex overflow-hidden">
       {/* Sidebar */}
       <aside className="w-[220px] shrink-0 bg-surface-container-lowest border-r border-outline-variant/40 flex flex-col">
         {/* Brand */}
         <div className="px-md pt-md pb-sm">
           <div className="flex items-center gap-sm">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px] text-white">store</span>
+              <span className="material-symbols-outlined text-[18px] text-white">
+                store
+              </span>
             </div>
             <div>
               <p className="text-[15px] font-bold text-on-surface leading-none">VyaparSetu</p>
@@ -33,7 +55,7 @@ const DashboardLayout = (): React.ReactElement => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/dashboard'}
+              end={item.to === "/dashboard"}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-sm rounded-xl px-sm py-xs transition-all duration-200',
@@ -86,11 +108,13 @@ const DashboardLayout = (): React.ReactElement => {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Top Header */}
         <header className="h-14 shrink-0 border-b border-outline-variant/40 bg-surface-container-lowest flex items-center px-md gap-md">
           <div className="flex-1 max-w-[480px] relative">
-            <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">search</span>
+            <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">
+              search
+            </span>
             <input
               type="text"
               placeholder="Search schemes, compliance docs, or AI commands..."
@@ -104,15 +128,61 @@ const DashboardLayout = (): React.ReactElement => {
               <span className="text-label-sm text-green-700 font-semibold">Health Score: 92</span>
             </div>
             <button className="relative w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors">
-              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+                notifications
+              </span>
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-error border border-white" />
             </button>
             <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors">
-              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">help_outline</span>
+              <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+                help_outline
+              </span>
             </button>
-            <button className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-              <span className="material-symbols-outlined text-[20px] text-primary">account_circle</span>
-            </button>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden hover:bg-primary/20 transition-colors focus:outline-none"
+              >
+                <span className="material-symbols-outlined text-[20px] text-primary">
+                  account_circle
+                </span>
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-xs w-48 bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-lg py-xs z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      navigate("/dashboard/settings");
+                    }}
+                    className="w-full px-md py-xs text-left font-body-md text-body-md text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-sm"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+                      settings
+                    </span>
+                    Settings
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setShowProfileMenu(false);
+                      try {
+                        await authService.logout();
+                      } catch (err) {
+                        // ignore error
+                      }
+                      clearAuth();
+                      navigate("/auth");
+                    }}
+                    className="w-full px-md py-xs text-left font-body-md text-body-md text-error hover:bg-error/10 transition-colors flex items-center gap-sm border-t border-outline-variant/20"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-error">
+                      logout
+                    </span>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
