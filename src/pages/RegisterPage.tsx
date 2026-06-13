@@ -1,8 +1,8 @@
 import React from "react";
-import { LoginForm } from "../features/auth/LoginForm";
+import { RegisterForm } from "../features/auth/RegisterForm";
 import { Link } from "react-router-dom";
 
-const AuthPage = (): React.ReactElement => {
+const RegisterPage = (): React.ReactElement => {
   return (
     <div className="bg-mesh font-body-md text-on-background min-h-screen flex items-center justify-center p-md">
       {/* Background blobs */}
@@ -23,24 +23,24 @@ const AuthPage = (): React.ReactElement => {
               </span>
             </div>
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-xs">
-              Welcome Back
+              Get Started
             </h1>
             <p className="font-body-md text-on-surface-variant max-w-[280px]">
-              Sign in to manage your business growth.
+              Join VyaparSetu to unlock your business potential.
             </p>
           </div>
 
-          <LoginForm />
+          <RegisterForm />
 
           {/* Footer */}
           <div className="mt-lg text-center">
             <p className="font-body-md text-on-surface-variant">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
                 className="text-primary font-bold hover:underline decoration-2 underline-offset-4"
-                to="/register"
+                to="/auth"
               >
-                Sign Up
+                Sign In
               </Link>
             </p>
           </div>
@@ -68,4 +68,4 @@ const AuthPage = (): React.ReactElement => {
   );
 };
 
-export default AuthPage;
+export default RegisterPage;
