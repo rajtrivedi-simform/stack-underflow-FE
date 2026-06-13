@@ -1,114 +1,80 @@
 import React, { useState } from 'react';
 import { cn } from '../../utils/cn';
+import { useRegulatoryUpdates } from '../../hooks/useRegulatoryUpdates';
+import type { ApiSeverity } from '../../services/regulatory.service';
 
-type Severity = 'critical' | 'high' | 'medium' | 'low';
+type FilterTab = 'all' | ApiSeverity;
 
-interface RegulatoryUpdate {
-  id: string;
-  severity: Severity;
-  effectiveDate: string;
-  title: string;
-  description: string;
-  actionRequired: string;
-  saved?: boolean;
-}
-
-const UPDATES: RegulatoryUpdate[] = [
-  {
-    id: 'gst-e-invoicing',
-    severity: 'critical',
-    effectiveDate: '1 Jul 2024',
-    title: 'GST Notification No. 12/2024: Mandatory E-Invoicing for Businesses with ₹5Cr+ Turnover',
-    description: 'The Central Board of Indirect Taxes and Customs (CBIC) has announced that all registered taxpayers having an aggregate turnover exceeding ₹5 Crore in any preceding financial year from 2017-18 onwards are now mandated to generate e-invoices for B2B supply of goods or services.',
-    actionRequired: 'Upgrade GST integrations to support IRN generation via GST portal APIs before the compliance deadline.',
-  },
-  {
-    id: 'new-labor-code',
-    severity: 'high',
-    effectiveDate: '15 Aug 2025',
-    title: 'New Labor Code Implementation: Changes to Gratuity and Working Hour Calculations',
-    description: "The Ministry of Labour & Employment has finalized the rules for the Code on Social Security. This will impact the take-home salary as the definition of 'Wages' definition is being standardized to 50% of the gross compensation.",
-    actionRequired: 'Review and adjust your payroll structure to ensure the basic pay is at least 50% of the total CTC.',
-  },
-  {
-    id: 'dpdp-consent',
-    severity: 'high',
-    effectiveDate: '1 Mar 2025',
-    title: 'Data Privacy (DPDP) Act: Mandatory Consent Manager Deployment',
-    description: 'The Digital Personal Data Protection Act requires data fiduciaries to implement granular consent management systems. Businesses must now allow users to withdraw consent as easily as it was given.',
-    actionRequired: 'Audit customer-facing web applications for DPDP compliance and update privacy policy links.',
-  },
-  {
-    id: 'msme-definition',
-    severity: 'low',
-    effectiveDate: 'Effective immediately',
-    title: 'Revised MSME Definition for Tax Rebates',
-    description: 'Small updates to the turnover threshold calculations for MSMEs seeking certain state-level subsidies in the Maharashtra Industrial corridor.',
-    actionRequired: 'Check your Udyam registration details for threshold eligibility.',
-  },
-];
-
-const SEVERITY_CONFIG: Record<Severity, { label: string; className: string; dot: string; border: string }> = {
-  critical: {
+const SEVERITY_CONFIG: Record<ApiSeverity, { label: string; className: string; border: string }> = {
+  CRITICAL: {
     label: 'CRITICAL',
     className: 'bg-red-100 text-red-700 border-red-200',
-    dot: 'bg-red-500',
     border: 'border-l-red-500',
   },
-  high: {
+  HIGH: {
     label: 'HIGH',
     className: 'bg-orange-100 text-orange-700 border-orange-200',
-    dot: 'bg-orange-500',
     border: 'border-l-orange-500',
   },
-  medium: {
+  MEDIUM: {
     label: 'MEDIUM',
     className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    dot: 'bg-yellow-500',
     border: 'border-l-yellow-500',
   },
-  low: {
+  LOW: {
     label: 'LOW',
     className: 'bg-blue-100 text-blue-700 border-blue-200',
-    dot: 'bg-blue-500',
     border: 'border-l-surface-container',
   },
 };
 
-type FilterTab = 'all' | Severity;
+const PAGE_LIMIT = 10;
+
+const formatDate = (isoString: string): string =>
+  new Date(isoString).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+const buildPageRange = (current: number, total: number): (number | '…')[] => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | '…')[] = [1];
+  if (current > 3) pages.push('…');
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p);
+  if (current < total - 2) pages.push('…');
+  pages.push(total);
+  return pages;
+};
 
 const RegulatoryFeedPage = (): React.ReactElement => {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
-  const [alertVisible, setAlertVisible] = useState(true);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [alertDismissed, setAlertDismissed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filtered = activeFilter === 'all'
-    ? UPDATES
-    : UPDATES.filter(u => u.severity === activeFilter);
+  const { data, isLoading, isError } = useRegulatoryUpdates({
+    severity: activeFilter === 'all' ? undefined : activeFilter,
+    page: currentPage,
+    limit: PAGE_LIMIT,
+  });
 
-  const toggleExpand = (id: string) => {
-    setExpandedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+  const { data: criticalData } = useRegulatoryUpdates({ severity: 'CRITICAL', page: 1, limit: 1 });
 
-  const toggleSave = (id: string) => {
-    setSavedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const criticalCount = criticalData?.pagination?.total ?? 0;
+  const updates = data?.updates ?? [];
+  const totalPages = data?.pagination?.pages ?? 1;
+
+  const handleFilterChange = (filter: FilterTab) => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
   };
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: 'all', label: 'All' },
-    { key: 'critical', label: 'Critical' },
-    { key: 'high', label: 'High' },
-    { key: 'medium', label: 'Medium' },
-    { key: 'low', label: 'Low' },
+    { key: 'CRITICAL', label: 'Critical' },
+    { key: 'HIGH', label: 'High' },
+    { key: 'MEDIUM', label: 'Medium' },
+    { key: 'LOW', label: 'Low' },
   ];
 
   return (
@@ -139,17 +105,17 @@ const RegulatoryFeedPage = (): React.ReactElement => {
       </div>
 
       {/* Critical Alert Banner */}
-      {alertVisible && (
+      {!alertDismissed && criticalCount > 0 && (
         <div className="bg-red-500 rounded-2xl p-3 mb-md flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px] text-white">warning</span>
             <p className="text-sm font-semibold text-white">
-              2 Critical updates this month — Review Immediately
+              {criticalCount} Critical update{criticalCount !== 1 ? 's' : ''} this month — Review Immediately
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setAlertVisible(false)}
+            onClick={() => setAlertDismissed(true)}
             className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <span className="material-symbols-outlined text-[16px] text-white">close</span>
@@ -163,12 +129,12 @@ const RegulatoryFeedPage = (): React.ReactElement => {
           <button
             key={tab.key}
             type="button"
-            onClick={() => setActiveFilter(tab.key)}
+            onClick={() => handleFilterChange(tab.key)}
             className={cn(
               'h-7 px-sm rounded-full text-xs font-semibold transition-colors',
               activeFilter === tab.key
                 ? 'bg-on-surface text-surface'
-                : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container border border-outline-variant/40'
+                : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container border border-outline-variant/40',
             )}
           >
             {tab.label}
@@ -176,79 +142,147 @@ const RegulatoryFeedPage = (): React.ReactElement => {
         ))}
       </div>
 
+      {/* Error state */}
+      {isError && (
+        <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant">
+          <span className="material-symbols-outlined text-[40px] mb-2">error_outline</span>
+          <p className="text-sm font-medium">Failed to load regulatory updates</p>
+          <p className="text-xs mt-1">Please try again later</p>
+        </div>
+      )}
+
       {/* Update Cards */}
-      <div className="space-y-3 mb-md">
-        {filtered.map(update => {
-          const config = SEVERITY_CONFIG[update.severity];
-          const isExpanded = expandedIds.has(update.id);
-          const isSaved = savedIds.has(update.id);
-          return (
-            <div
-              key={update.id}
-              className={cn(
-                'bg-surface-container-lowest rounded-2xl border border-outline-variant/40 border-l-4 shadow-sm p-4',
-                config.border
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  {/* Badges row */}
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded border', config.className)}>
-                      {config.label}
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] text-on-surface-variant/60">
-                      <span className="material-symbols-outlined text-[11px]">schedule</span>
-                      Effective {update.effectiveDate}
-                    </span>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-on-surface mb-2 leading-snug">{update.title}</h3>
-                  <p className={cn(
-                    'text-xs text-on-surface-variant leading-relaxed mb-2',
-                    !isExpanded && 'line-clamp-2'
-                  )}>
-                    {update.description}
-                  </p>
-
-                  {/* Action Required */}
-                  <div className="bg-surface-container rounded-lg px-3 py-2 mb-2">
-                    <p className="text-xs text-on-surface-variant mb-0.5">
-                      <span className="font-semibold text-on-surface">Action Required:</span>{' '}
-                      {update.actionRequired}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(update.id)}
-                    className="text-xs font-semibold text-primary flex items-center gap-0.5 hover:underline"
-                  >
-                    {isExpanded ? 'Read less' : 'Read more'}
-                    <span className={cn(
-                      'material-symbols-outlined text-[14px] transition-transform',
-                      isExpanded && 'rotate-180'
-                    )}>expand_more</span>
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => toggleSave(update.id)}
-                  className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-container transition-colors"
+      {!isError && (
+        <div className="space-y-3 mb-md">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 border-l-4 border-l-outline-variant p-4 animate-pulse"
                 >
-                  <span className={cn(
-                    'material-symbols-outlined text-[20px]',
-                    isSaved ? 'text-primary' : 'text-on-surface-variant/50'
-                  )}>
-                    {isSaved ? 'bookmark' : 'bookmark_border'}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-4 w-16 bg-surface-container rounded" />
+                    <div className="h-3 w-28 bg-surface-container rounded" />
+                  </div>
+                  <div className="h-4 w-3/4 bg-surface-container rounded mb-2" />
+                  <div className="h-3 w-full bg-surface-container rounded mb-1" />
+                  <div className="h-3 w-2/3 bg-surface-container rounded mb-3" />
+                  <div className="h-8 bg-surface-container rounded-lg" />
+                </div>
+              ))
+            : updates.length === 0
+              ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant">
+                    <span className="material-symbols-outlined text-[40px] mb-2">check_circle</span>
+                    <p className="text-sm font-medium">No updates found</p>
+                    <p className="text-xs mt-1">Check back later for new regulatory updates</p>
+                  </div>
+                )
+              : updates.map(update => {
+                  const config = SEVERITY_CONFIG[update.severity];
+                  const affectsLabel = [
+                    update.affectsComplianceIds.length > 0 && `${update.affectsComplianceIds.length} compliance`,
+                    update.affectsSchemeIds.length > 0 && `${update.affectsSchemeIds.length} scheme`,
+                  ].filter(Boolean).join(' · ');
+
+                  return (
+                    <div
+                      key={update.id}
+                      className={cn(
+                        'bg-surface-container-lowest rounded-2xl border border-outline-variant/40 border-l-4 shadow-sm p-4',
+                        config.border,
+                      )}
+                    >
+                      {/* Badges row */}
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded border', config.className)}>
+                          {config.label}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] text-on-surface-variant/60">
+                          <span className="material-symbols-outlined text-[11px]">schedule</span>
+                          Effective {formatDate(update.effectiveDate)}
+                        </span>
+                        {affectsLabel && (
+                          <span className="flex items-center gap-1 text-[10px] text-on-surface-variant/60">
+                            <span className="material-symbols-outlined text-[11px]">link</span>
+                            {affectsLabel}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-sm font-bold text-on-surface mb-2 leading-snug">{update.title}</h3>
+                      <p className="text-xs text-on-surface-variant leading-relaxed mb-2">{update.summary}</p>
+
+                      {/* Action Required */}
+                      <div className="bg-surface-container rounded-lg px-3 py-2 mb-2">
+                        <p className="text-xs text-on-surface-variant">
+                          <span className="font-semibold text-on-surface">Action Required:</span>{' '}
+                          {update.actionRequired}
+                        </p>
+                      </div>
+
+                      {/* Source link */}
+                      {update.sourceUrl && (
+                        <a
+                          href={update.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold text-primary flex items-center gap-0.5 hover:underline w-fit"
+                        >
+                          View Source
+                          <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && !isError && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 mb-md">
+          <button
+            type="button"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="w-8 h-8 rounded-lg flex items-center justify-center border border-outline-variant/40 text-on-surface-variant disabled:opacity-30 hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+          </button>
+          {buildPageRange(currentPage, totalPages).map((page, i) =>
+            page === '…'
+              ? (
+                  <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-xs text-on-surface-variant">
+                    …
                   </span>
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                )
+              : (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      'w-8 h-8 rounded-lg text-xs font-semibold transition-colors',
+                      currentPage === page
+                        ? 'bg-on-surface text-surface'
+                        : 'border border-outline-variant/40 text-on-surface-variant hover:bg-surface-container-low',
+                    )}
+                  >
+                    {page}
+                  </button>
+                ),
+          )}
+          <button
+            type="button"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="w-8 h-8 rounded-lg flex items-center justify-center border border-outline-variant/40 text-on-surface-variant disabled:opacity-30 hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+          </button>
+        </div>
+      )}
 
       {/* AI Advisory Perspective */}
       <div className="bg-blue-50 rounded-2xl border border-blue-200 p-4">
