@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { VyaparSetuWordmark } from '../features/onboarding/OnboardingComponents';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { VyaparSetuWordmark } from "../features/onboarding/OnboardingComponents";
 
 const OnboardingPage = (): React.ReactElement => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const OnboardingPage = (): React.ReactElement => {
           <VyaparSetuWordmark />
           <button
             type="button"
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate("/dashboard")}
             className="rounded-lg px-3 py-2 text-base font-medium text-[#17172c] transition-colors hover:text-[#3525cd]"
           >
             Save &amp; Exit
@@ -33,7 +33,8 @@ const OnboardingPage = (): React.ReactElement => {
             Which best describes you?
           </h1>
           <p className="mx-auto mb-12 max-w-[520px] text-[19px] leading-relaxed text-[#29283a]">
-            We'll personalise your onboarding, scheme matches, and compliance checklist based on your profile type.
+            We'll personalise your onboarding, scheme matches, and compliance
+            checklist based on your profile type.
           </p>
 
           {/* Cards */}
@@ -41,29 +42,39 @@ const OnboardingPage = (): React.ReactElement => {
             {/* Business Card */}
             <button
               type="button"
-              onClick={() => navigate('/onboarding/business')}
+              onClick={() => navigate("/onboarding/business")}
               className="group relative flex flex-col items-start rounded-2xl border-2 border-[#dde1ec] bg-white p-8 text-left transition-all duration-200 hover:border-[#3525cd] hover:shadow-xl hover:shadow-[#3525cd]/10 focus:outline-none focus:ring-4 focus:ring-[#3525cd]/20"
             >
               {/* Icon */}
               <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#3525cd]/10 transition-colors group-hover:bg-[#3525cd]/15">
-                <span className="material-symbols-outlined text-[34px] text-[#3525cd]">storefront</span>
+                <span className="material-symbols-outlined text-[34px] text-[#3525cd]">
+                  storefront
+                </span>
               </div>
 
-              <h2 className="mb-2 text-[24px] font-bold text-[#070C1D]">Business</h2>
+              <h2 className="mb-2 text-[24px] font-bold text-[#070C1D]">
+                Business
+              </h2>
               <p className="mb-6 text-[16px] leading-relaxed text-[#6f7586]">
-                For established MSMEs, traders, manufacturers, and service providers looking for schemes, loans, and compliance support.
+                For established MSMEs, traders, manufacturers, and service
+                providers looking for schemes, loans, and compliance support.
               </p>
 
               <div className="mt-auto flex flex-wrap gap-2">
-                {['MSME', 'Udyam', 'GST Filing', 'Subsidies'].map(tag => (
-                  <span key={tag} className="rounded-full bg-[#edf3ff] px-3 py-1 text-[13px] font-semibold text-[#3525cd]">
+                {["MSME", "Udyam", "GST Filing", "Subsidies"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[#edf3ff] px-3 py-1 text-[13px] font-semibold text-[#3525cd]"
+                  >
                     {tag}
                   </span>
                 ))}
               </div>
 
               <div className="mt-6 flex w-full items-center justify-between border-t border-[#dde1ec] pt-5">
-                <span className="text-[15px] font-semibold text-[#3525cd]">Set up Business profile</span>
+                <span className="text-[15px] font-semibold text-[#3525cd]">
+                  Set up Business profile
+                </span>
                 <span className="material-symbols-outlined text-[22px] text-[#3525cd] transition-transform group-hover:translate-x-1">
                   arrow_forward
                 </span>
@@ -73,30 +84,42 @@ const OnboardingPage = (): React.ReactElement => {
             {/* Startup Card */}
             <button
               type="button"
-              onClick={() => navigate('/onboarding/startup')}
+              onClick={() => navigate("/onboarding/startup")}
               className="group relative flex flex-col items-start rounded-2xl border-2 border-[#dde1ec] bg-white p-8 text-left transition-all duration-200 hover:border-[#f97316] hover:shadow-xl hover:shadow-[#f97316]/10 focus:outline-none focus:ring-4 focus:ring-[#f97316]/20"
             >
               {/* Icon */}
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 transition-colors group-hover:bg-orange-100">
-                <span className="material-symbols-outlined text-[34px] text-orange-500">rocket_launch</span>
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 transition-colors group-hover:bg-blue-100">
+                <span className="material-symbols-outlined text-[34px] text-blue-500">
+                  rocket_launch
+                </span>
               </div>
 
-              <h2 className="mb-2 text-[24px] font-bold text-[#070C1D]">Startup</h2>
+              <h2 className="mb-2 text-[24px] font-bold text-[#070C1D]">
+                Startup
+              </h2>
               <p className="mb-6 text-[16px] leading-relaxed text-[#6f7586]">
-                For early-stage ventures, innovators, and founders seeking seed funding, DPIIT recognition, and startup-specific grants.
+                For early-stage ventures, innovators, and founders seeking seed
+                funding, DPIIT recognition, and startup-specific grants.
               </p>
 
               <div className="mt-auto flex flex-wrap gap-2">
-                {['DPIIT', 'Seed Fund', 'Angel / VC', 'Incubation'].map(tag => (
-                  <span key={tag} className="rounded-full bg-orange-50 px-3 py-1 text-[13px] font-semibold text-orange-600">
-                    {tag}
-                  </span>
-                ))}
+                {["DPIIT", "Seed Fund", "Angel / VC", "Incubation"].map(
+                  (tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-blue-50 px-3 py-1 text-[13px] font-semibold text-blue-600"
+                    >
+                      {tag}
+                    </span>
+                  ),
+                )}
               </div>
 
               <div className="mt-6 flex w-full items-center justify-between border-t border-[#dde1ec] pt-5">
-                <span className="text-[15px] font-semibold text-orange-500">Set up Startup profile</span>
-                <span className="material-symbols-outlined text-[22px] text-orange-500 transition-transform group-hover:translate-x-1">
+                <span className="text-[15px] font-semibold text-blue-500">
+                  Set up Startup profile
+                </span>
+                <span className="material-symbols-outlined text-[22px] text-blue-500 transition-transform group-hover:translate-x-1">
                   arrow_forward
                 </span>
               </div>
@@ -104,14 +127,14 @@ const OnboardingPage = (): React.ReactElement => {
           </div>
 
           <p className="mt-10 text-[14px] text-[#6f7586]">
-            Not sure?{' '}
+            Not sure?{" "}
             <button
               type="button"
-              onClick={() => navigate('/onboarding/business')}
+              onClick={() => navigate("/onboarding/business")}
               className="font-semibold text-[#3525cd] hover:underline"
             >
               Start with Business
-            </button>{' '}
+            </button>{" "}
             — you can update your profile anytime.
           </p>
         </div>
