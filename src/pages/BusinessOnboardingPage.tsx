@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { businessService } from '../services/business.service';
+import { matchService, type MatchedScheme } from '../services/match.service';
+import MatchSchemesModal from '../components/MatchSchemesModal';
 import {
   OnboardingShell,
   OnboardingTitle,
@@ -202,6 +204,10 @@ const BusinessOnboardingPage = (): React.ReactElement => {
   const [form, setForm] = useState<BusinessForm>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [matchedSchemes, setMatchedSchemes] = useState<MatchedScheme[]>([]);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const [matchLoading, setMatchLoading] = useState(false);
 
   const set = (field: keyof BusinessForm, value: string | string[]) =>
     setForm(prev => ({ ...prev, [field]: value }));
@@ -222,13 +228,13 @@ const BusinessOnboardingPage = (): React.ReactElement => {
         state: form.state,
         district: form.district,
         taluka: form.taluka,
-        yearEstablished: form.year_established ? parseInt(form.year_established, 10) : 0,
+        yearEstablished: form.year_established ? Number.parseInt(form.year_established, 10) : 0,
         productionStart: form.production_start,
         annualTurnoverRange: form.annual_turnover_range,
         investmentPlantMachinery: form.investment_plant_machinery,
-        totalEmployees: form.total_employees ? parseInt(form.total_employees, 10) : 0,
-        maleEmployees: form.male_employees ? parseInt(form.male_employees, 10) : 0,
-        femaleEmployees: form.female_employees ? parseInt(form.female_employees, 10) : 0,
+        totalEmployees: form.total_employees ? Number.parseInt(form.total_employees, 10) : 0,
+        maleEmployees: form.male_employees ? Number.parseInt(form.male_employees, 10) : 0,
+        femaleEmployees: form.female_employees ? Number.parseInt(form.female_employees, 10) : 0,
         gstStatus: form.gst_status,
         udyamNumber: form.udyam_number,
         gstin: form.gstin,
@@ -243,8 +249,25 @@ const BusinessOnboardingPage = (): React.ReactElement => {
         knownSchemes: form.known_schemes,
       };
 
-      await businessService.createBusinessProfile(payload);
-      navigate('/dashboard');
+      // Save business profile
+      const saveResponse = await businessService.createBusinessProfile(payload);
+
+      // Call match API to get matched schemes
+      setMatchLoading(true);
+      try {
+        const matchResponse = await matchService.matchBusinessSchemes(saveResponse.data.id);
+        setMatchedSchemes(matchResponse.data.matchedSchemes);
+        setTotalMatches(matchResponse.data.totalMatches);
+        setShowModal(true);
+      } catch (matchError) {
+        // If match API fails, just show the modal with empty schemes
+        console.error('Failed to fetch matched schemes:', matchError);
+        setMatchedSchemes([]);
+        setTotalMatches(0);
+        setShowModal(true);
+      } finally {
+        setMatchLoading(false);
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Failed to save business profile');
     } finally {
@@ -256,13 +279,14 @@ const BusinessOnboardingPage = (): React.ReactElement => {
   const back = () => step > 1 ? setStep(s => s - 1) : navigate('/onboarding');
 
   return (
-    <OnboardingShell
-      progress={progress}
-      stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
-      title={STEP_TITLES[step - 1]}
-      rightPanel={RightPanels[step]}
-      panelBg="#edf3ff"
-    >
+    <>
+      <OnboardingShell
+        progress={progress}
+        stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
+        title={STEP_TITLES[step - 1]}
+        rightPanel={RightPanels[step]}
+        panelBg="#edf3ff"
+      >
       {/* ── Step 1: Business Identity ── */}
       {step === 1 && (
         <>
@@ -461,7 +485,20 @@ const BusinessOnboardingPage = (): React.ReactElement => {
           </div>
         </>
       )}
-    </OnboardingShell>
+      </OnboardingShell>
+
+      {/* Match Schemes Modal */}
+      <MatchSchemesModal
+        isOpen={showModal}
+        schemes={matchedSchemes}
+        totalMatches={totalMatches}
+        isLoading={matchLoading}
+        onClose={() => {
+          setShowModal(false);
+          navigate('/dashboard');
+        }}
+      />
+    </>
   );
 };
 
