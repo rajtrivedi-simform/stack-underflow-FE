@@ -249,13 +249,6 @@ export const CheckboxGroup = ({
   onChange,
   columns = 2,
 }: CheckboxGroupProps): React.ReactElement => {
-  const toggle = (val: string) => {
-    onChange(
-      selected.includes(val)
-        ? selected.filter((s) => s !== val)
-        : [...selected, val],
-    );
-  };
   return (
     <div
       className={cn(
@@ -263,33 +256,48 @@ export const CheckboxGroup = ({
         columns === 3 ? "grid-cols-3" : "grid-cols-2",
       )}
     >
-      {options.map((opt) => {
+      {options.map((opt, idx) => {
         const checked = selected.includes(opt);
+        const inputId = `checkbox-${opt}-${idx}`;
         return (
-          <label
-            key={opt}
-            onClick={() => toggle(opt)}
-            className={cn(
-              "flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-[15px] font-medium transition-all",
-              checked
-                ? "border-[#3525cd] bg-[#3525cd]/5 text-[#3525cd]"
-                : "border-[#bfc0d8] bg-white text-[#29283a] hover:border-[#3525cd]/40",
-            )}
-          >
-            <div
+          <div key={`${opt}-${idx}`} className="w-full">
+            <input
+              id={inputId}
+              type="checkbox"
+              checked={checked}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onChange([...selected, opt]);
+                } else {
+                  onChange(selected.filter((s) => s !== opt));
+                }
+              }}
+              className="sr-only"
+            />
+            <label
+              htmlFor={inputId}
               className={cn(
-                "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
-                checked ? "border-[#3525cd] bg-[#3525cd]" : "border-[#bfc0d8]",
+                "flex w-full cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-[15px] font-medium transition-all",
+                checked
+                  ? "border-[#3525cd] bg-[#3525cd]/5 text-[#3525cd]"
+                  : "border-[#bfc0d8] bg-white text-[#29283a] hover:border-[#3525cd]/40",
               )}
             >
-              {checked && (
-                <span className="material-symbols-outlined text-[14px] text-white">
-                  check
-                </span>
-              )}
-            </div>
-            {opt}
-          </label>
+              <div
+                className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors pointer-events-none",
+                  checked ? "border-[#3525cd] bg-[#3525cd]" : "border-[#bfc0d8]",
+                )}
+              >
+                {checked && (
+                  <span className="material-symbols-outlined text-[14px] text-white">
+                    check
+                  </span>
+                )}
+              </div>
+              <span>{opt}</span>
+            </label>
+          </div>
         );
       })}
     </div>

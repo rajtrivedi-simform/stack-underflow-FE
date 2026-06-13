@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateStartup } from "../hooks/useStartupMutations";
 import type { StartupPayload } from "../services/startup.service";
+import { matchService, type MatchedScheme } from "../services/match.service";
+import MatchSchemesModal from "../components/MatchSchemesModal";
 import {
   OnboardingShell,
   OnboardingTitle,
@@ -364,6 +366,10 @@ const StartupOnboardingPage = (): React.ReactElement => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<StartupForm>(EMPTY);
   const createStartup = useCreateStartup();
+  const [showModal, setShowModal] = useState(false);
+  const [matchedSchemes, setMatchedSchemes] = useState<MatchedScheme[]>([]);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const [matchLoading, setMatchLoading] = useState(false);
 
   const set = (field: keyof StartupForm, value: string | string[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -417,7 +423,24 @@ const StartupOnboardingPage = (): React.ReactElement => {
       setStep((s) => s + 1);
     } else {
       createStartup.mutate(buildPayload(), {
-        onSuccess: () => navigate("/dashboard"),
+        onSuccess: async (response) => {
+          setMatchLoading(true);
+          try {
+            const matchResponse = await matchService.matchStartupSchemes(
+              response.data.id,
+            );
+            setMatchedSchemes(matchResponse.data.matchedSchemes);
+            setTotalMatches(matchResponse.data.totalMatches);
+            setShowModal(true);
+          } catch (error) {
+            console.error("Failed to fetch matched schemes:", error);
+            setMatchedSchemes([]);
+            setTotalMatches(0);
+            setShowModal(true);
+          } finally {
+            setMatchLoading(false);
+          }
+        },
         onError: (err) => console.error("Startup onboarding failed:", err),
       });
     }
@@ -426,13 +449,14 @@ const StartupOnboardingPage = (): React.ReactElement => {
     step > 1 ? setStep((s) => s - 1) : navigate("/onboarding");
 
   return (
-    <OnboardingShell
-      progress={progress}
-      stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
-      title={STEP_TITLES[step - 1]}
-      rightPanel={RightPanels[step]}
-      panelBg="#fff7ed"
-    >
+    <>
+      <OnboardingShell
+        progress={progress}
+        stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
+        title={STEP_TITLES[step - 1]}
+        rightPanel={RightPanels[step]}
+        panelBg="#fff7ed"
+      >
       {/* ── Step 1: Startup Identity ── */}
       {step === 1 && (
         <>
@@ -894,7 +918,20 @@ const StartupOnboardingPage = (): React.ReactElement => {
           </div>
         </>
       )}
-    </OnboardingShell>
+      </OnboardingShell>
+
+      {/* Match Schemes Modal */}
+      <MatchSchemesModal
+        isOpen={showModal}
+        schemes={matchedSchemes}
+        totalMatches={totalMatches}
+        isLoading={matchLoading}
+        onClose={() => {
+          setShowModal(false);
+          navigate("/dashboard");
+        }}
+      />
+    </>
   );
 };
 

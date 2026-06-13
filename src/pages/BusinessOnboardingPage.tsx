@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { businessService } from '../services/business.service';
+import { matchService, type MatchedScheme } from '../services/match.service';
+import MatchSchemesModal from '../components/MatchSchemesModal';
 import {
   OnboardingShell,
   OnboardingTitle,
@@ -182,11 +185,29 @@ const EMPTY: BusinessForm = {
   women_led: '', bpl_card: '', known_schemes: '',
 };
 
+/* ─── Reusable Components ─────────────────────────────────── */
+const BackBtn = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex h-[66px] w-full items-center justify-center gap-2 rounded-lg border border-[#bfc0d8] bg-white px-14 text-[22px] font-bold text-[#29283a] transition-all hover:bg-[#f8f9ff] md:w-[200px]"
+  >
+    <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+    Back
+  </button>
+);
+
 /* ─── Component ──────────────────────────────────────────── */
 const BusinessOnboardingPage = (): React.ReactElement => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<BusinessForm>(EMPTY);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [matchedSchemes, setMatchedSchemes] = useState<MatchedScheme[]>([]);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const [matchLoading, setMatchLoading] = useState(false);
 
   const set = (field: keyof BusinessForm, value: string | string[]) =>
     setForm(prev => ({ ...prev, [field]: value }));
@@ -194,28 +215,78 @@ const BusinessOnboardingPage = (): React.ReactElement => {
   const progress = Math.round((step / TOTAL_STEPS) * 100);
   const msmeCategory = computeMsmeCategory(form.investment_plant_machinery, form.annual_turnover_range);
 
-  const next = () => step < TOTAL_STEPS ? setStep(s => s + 1) : navigate('/dashboard');
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+
+      const payload = {
+        businessName: form.business_name,
+        ownerName: '', // You may need to add this field to the form if required
+        constitution: form.constitution,
+        sector: form.sector,
+        state: form.state,
+        district: form.district,
+        taluka: form.taluka,
+        yearEstablished: form.year_established ? Number.parseInt(form.year_established, 10) : 0,
+        productionStart: form.production_start,
+        annualTurnoverRange: form.annual_turnover_range,
+        investmentPlantMachinery: form.investment_plant_machinery,
+        totalEmployees: form.total_employees ? Number.parseInt(form.total_employees, 10) : 0,
+        maleEmployees: form.male_employees ? Number.parseInt(form.male_employees, 10) : 0,
+        femaleEmployees: form.female_employees ? Number.parseInt(form.female_employees, 10) : 0,
+        gstStatus: form.gst_status,
+        udyamNumber: form.udyam_number,
+        gstin: form.gstin,
+        existingRegistrations: form.existing_registrations,
+        pendingNotices: form.pending_notices === 'yes',
+        ownerGender: form.owner_gender,
+        ownerAgeGroup: form.owner_age_group,
+        socialCategory: form.social_category,
+        education: form.education,
+        womenLed: form.women_led,
+        bplCard: form.bpl_card === 'yes',
+        knownSchemes: form.known_schemes,
+      };
+
+      // Save business profile
+      const saveResponse = await businessService.createBusinessProfile(payload);
+
+      // Call match API to get matched schemes
+      setMatchLoading(true);
+      try {
+        const matchResponse = await matchService.matchBusinessSchemes(saveResponse.data.id);
+        setMatchedSchemes(matchResponse.data.matchedSchemes);
+        setTotalMatches(matchResponse.data.totalMatches);
+        setShowModal(true);
+      } catch (matchError) {
+        // If match API fails, just show the modal with empty schemes
+        console.error('Failed to fetch matched schemes:', matchError);
+        setMatchedSchemes([]);
+        setTotalMatches(0);
+        setShowModal(true);
+      } finally {
+        setMatchLoading(false);
+      }
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save business profile');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const next = () => step < TOTAL_STEPS ? setStep(s => s + 1) : handleSubmit();
   const back = () => step > 1 ? setStep(s => s - 1) : navigate('/onboarding');
 
-  const BackBtn = () => (
-    <button
-      type="button"
-      onClick={back}
-      className="flex h-[66px] w-full items-center justify-center gap-2 rounded-lg border border-[#bfc0d8] bg-white px-14 text-[22px] font-bold text-[#29283a] transition-all hover:bg-[#f8f9ff] md:w-[200px]"
-    >
-      <span className="material-symbols-outlined text-[22px]">arrow_back</span>
-      Back
-    </button>
-  );
-
   return (
-    <OnboardingShell
-      progress={progress}
-      stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
-      title={STEP_TITLES[step - 1]}
-      rightPanel={RightPanels[step]}
-      panelBg="#edf3ff"
-    >
+    <>
+      <OnboardingShell
+        progress={progress}
+        stepLabel={`Step ${step} of ${TOTAL_STEPS}`}
+        title={STEP_TITLES[step - 1]}
+        rightPanel={RightPanels[step]}
+        panelBg="#edf3ff"
+      >
       {/* ── Step 1: Business Identity ── */}
       {step === 1 && (
         <>
@@ -237,7 +308,7 @@ const BusinessOnboardingPage = (): React.ReactElement => {
             </Field>
             <div className="flex gap-4 pt-2">
               <PrimaryAction onClick={next}>Continue <span className="material-symbols-outlined text-[22px]">arrow_forward</span></PrimaryAction>
-              <BackBtn />
+              <BackBtn onClick={back} />
             </div>
           </div>
         </>
@@ -261,7 +332,7 @@ const BusinessOnboardingPage = (): React.ReactElement => {
             </Field>
             <div className="flex gap-4 pt-2">
               <PrimaryAction onClick={next}>Continue <span className="material-symbols-outlined text-[22px]">arrow_forward</span></PrimaryAction>
-              <BackBtn />
+              <BackBtn onClick={back} />
             </div>
           </div>
         </>
@@ -302,7 +373,7 @@ const BusinessOnboardingPage = (): React.ReactElement => {
             </div>
             <div className="flex gap-4 pt-2">
               <PrimaryAction onClick={next}>Continue <span className="material-symbols-outlined text-[22px]">arrow_forward</span></PrimaryAction>
-              <BackBtn />
+              <BackBtn onClick={back} />
             </div>
           </div>
         </>
@@ -336,10 +407,18 @@ const BusinessOnboardingPage = (): React.ReactElement => {
             </Field>
             <div className="flex gap-4 pt-2">
               <PrimaryAction onClick={next}>Continue <span className="material-symbols-outlined text-[22px]">arrow_forward</span></PrimaryAction>
-              <BackBtn />
+              <BackBtn onClick={back} />
             </div>
           </div>
         </>
+      )}
+
+      {/* Error Message */}
+      {submitError && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-semibold text-red-700">Error</p>
+          <p className="text-sm text-red-600">{submitError}</p>
+        </div>
       )}
 
       {/* ── Step 5: Owner Profile ── */}
@@ -385,15 +464,41 @@ const BusinessOnboardingPage = (): React.ReactElement => {
               <TextArea id="known_schemes" placeholder="e.g. PMEGP, CGTMSE, MUDRA..." value={form.known_schemes} onChange={e => set('known_schemes', e.target.value)} />
             </Field>
             <div className="flex gap-4 pt-2">
-              <PrimaryAction onClick={next}>
-                Complete Setup <span className="material-symbols-outlined text-[22px]">check</span>
-              </PrimaryAction>
-              <BackBtn />
+              <button
+                onClick={next}
+                disabled={submitting}
+                className="flex h-[66px] w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-14 text-[23px] font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 md:w-[265px]"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    Complete Setup <span className="material-symbols-outlined text-[22px]">check</span>
+                  </>
+                )}
+              </button>
+              <BackBtn onClick={back} />
             </div>
           </div>
         </>
       )}
-    </OnboardingShell>
+      </OnboardingShell>
+
+      {/* Match Schemes Modal */}
+      <MatchSchemesModal
+        isOpen={showModal}
+        schemes={matchedSchemes}
+        totalMatches={totalMatches}
+        isLoading={matchLoading}
+        onClose={() => {
+          setShowModal(false);
+          navigate('/dashboard');
+        }}
+      />
+    </>
   );
 };
 
