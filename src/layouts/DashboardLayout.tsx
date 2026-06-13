@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { cn } from "../utils/cn";
 import { useAuthContext } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 
 const navItems = [
-  { label: 'Dashboard', icon: 'dashboard', to: '/dashboard' },
-  { label: 'Compliance', icon: 'verified_user', to: '/dashboard/compliance' },
-  { label: 'Schemes', icon: 'grid_view', to: '/dashboard/schemes' },
-  { label: 'Regulatory Feed', icon: 'feed', to: '/dashboard/regulatory-feed' },
-  { label: 'Growth', icon: 'trending_up', to: '/dashboard/growth' },
-  { label: 'Applications', icon: 'assignment', to: '/dashboard/applications' },
+  { label: "Dashboard", icon: "dashboard", to: "/dashboard" },
+  { label: "Compliance", icon: "verified_user", to: "/dashboard/compliance" },
+  { label: "Schemes", icon: "grid_view", to: "/dashboard/schemes" },
+  { label: "Regulatory Feed", icon: "feed", to: "/dashboard/regulatory-feed" },
+  { label: "Growth", icon: "trending_up", to: "/dashboard/growth" },
+  { label: "Applications", icon: "assignment", to: "/dashboard/applications" },
 ];
 
 const DashboardLayout = (): React.ReactElement => {
@@ -45,8 +45,12 @@ const DashboardLayout = (): React.ReactElement => {
               </span>
             </div>
             <div>
-              <p className="text-[15px] font-bold text-on-surface leading-none">VyaparSetu</p>
-              <p className="text-[10px] text-on-surface-variant/60 tracking-wider uppercase mt-0.5">AI Business Advisor</p>
+              <p className="text-[15px] font-bold text-on-surface leading-none">
+                VyaparSetu
+              </p>
+              <p className="text-[10px] text-on-surface-variant/60 tracking-wider uppercase mt-0.5">
+                AI Business Advisor
+              </p>
             </div>
           </div>
         </div>
@@ -60,19 +64,31 @@ const DashboardLayout = (): React.ReactElement => {
               end={item.to === "/dashboard"}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-sm rounded-xl px-sm py-xs transition-all duration-200',
+                  "flex items-center gap-sm rounded-xl px-sm py-xs transition-all duration-200",
                   isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'hover:bg-surface-container-low text-on-surface-variant'
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-surface-container-low text-on-surface-variant",
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className={cn('material-symbols-outlined text-[20px]', isActive ? 'text-primary' : 'text-on-surface-variant')}>
+                  <span
+                    className={cn(
+                      "material-symbols-outlined text-[20px]",
+                      isActive ? "text-primary" : "text-on-surface-variant",
+                    )}
+                  >
                     {item.icon}
                   </span>
-                  <span className={cn('text-body-md font-medium', isActive ? 'text-primary font-semibold' : 'text-on-surface')}>
+                  <span
+                    className={cn(
+                      "text-body-md font-medium",
+                      isActive
+                        ? "text-primary font-semibold"
+                        : "text-on-surface",
+                    )}
+                  >
                     {item.label}
                   </span>
                 </>
@@ -87,15 +103,31 @@ const DashboardLayout = (): React.ReactElement => {
             to="/dashboard/settings"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-sm rounded-xl px-sm py-xs transition-all duration-200',
-                isActive ? 'bg-primary/10 text-primary' : 'hover:bg-surface-container-low text-on-surface-variant'
+                "flex items-center gap-sm rounded-xl px-sm py-xs transition-all duration-200",
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-surface-container-low text-on-surface-variant",
               )
             }
           >
             {({ isActive }) => (
               <>
-                <span className={cn('material-symbols-outlined text-[20px]', isActive ? 'text-primary' : 'text-on-surface-variant')}>settings</span>
-                <span className={cn('text-body-md font-medium', isActive ? 'text-primary font-semibold' : 'text-on-surface')}>Settings</span>
+                <span
+                  className={cn(
+                    "material-symbols-outlined text-[20px]",
+                    isActive ? "text-primary" : "text-on-surface-variant",
+                  )}
+                >
+                  settings
+                </span>
+                <span
+                  className={cn(
+                    "text-body-md font-medium",
+                    isActive ? "text-primary font-semibold" : "text-on-surface",
+                  )}
+                >
+                  Settings
+                </span>
               </>
             )}
           </NavLink>
@@ -103,18 +135,28 @@ const DashboardLayout = (): React.ReactElement => {
             to="/dashboard/help"
             className="flex items-center gap-sm rounded-xl px-sm py-xs hover:bg-surface-container-low transition-colors text-on-surface-variant"
           >
-            <span className="material-symbols-outlined text-[20px]">help_outline</span>
-            <span className="text-body-md font-medium text-on-surface">Support</span>
+            <span className="material-symbols-outlined text-[20px]">
+              help_outline
+            </span>
+            <span className="text-body-md font-medium text-on-surface">
+              Support
+            </span>
           </NavLink>
           {/* PRO PLAN upgrade card */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 px-sm py-sm mt-xs">
             <p className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 mb-0.5">
-              <span className="material-symbols-outlined text-[12px]">workspace_premium</span>
+              <span className="material-symbols-outlined text-[12px]">
+                workspace_premium
+              </span>
               Pro Plan
             </p>
-            <p className="text-[11px] text-on-surface-variant mb-sm">Unlock all AI Insights</p>
+            <p className="text-[11px] text-on-surface-variant mb-sm">
+              Unlock all AI Insights
+            </p>
             <button className="w-full h-8 bg-primary text-white text-[12px] font-semibold rounded-lg flex items-center justify-center gap-xs hover:bg-primary-container transition-colors">
-              <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+              <span className="material-symbols-outlined text-[14px]">
+                arrow_upward
+              </span>
               Upgrade to Pro
             </button>
           </div>
@@ -137,9 +179,18 @@ const DashboardLayout = (): React.ReactElement => {
           </div>
 
           <div className="flex items-center gap-sm ml-auto">
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="flex items-center gap-sm px-md py-xs bg-primary text-white font-title-md text-[14px] font-semibold rounded-xl hover:bg-primary-container active:scale-[0.98] transition-all duration-200 shadow-lg shadow-primary/20"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <Link to="/onboarding">New Application</Link>
+            </button>
             <div className="flex items-center gap-xs px-sm py-xs rounded-full border border-green-200 bg-green-50">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-label-sm text-green-700 font-semibold">Health Score: 92</span>
+              <span className="text-label-sm text-green-700 font-semibold">
+                Health Score: 92
+              </span>
             </div>
             <button className="relative w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-[20px] text-on-surface-variant">

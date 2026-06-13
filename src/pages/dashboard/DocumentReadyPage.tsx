@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { cn } from '../../utils/cn';
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { cn } from "../../utils/cn";
 
 const DocumentReadyPage = (): React.ReactElement => {
   const navigate = useNavigate();
@@ -22,19 +22,29 @@ const DocumentReadyPage = (): React.ReactElement => {
             onClick={() => navigate(`/dashboard/schemes/document/${docType}`)}
             className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_back</span>
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+              arrow_back
+            </span>
           </button>
-          <h1 className="text-[16px] font-bold text-on-surface">Document Ready</h1>
+          <h1 className="text-[16px] font-bold text-on-surface">
+            Document Ready
+          </h1>
         </div>
         <div className="flex items-center gap-sm">
           <button className="relative w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low">
-            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+              notifications
+            </span>
           </button>
           <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low">
-            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">help_outline</span>
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+              help_outline
+            </span>
           </button>
           <button className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[20px] text-primary">account_circle</span>
+            <span className="material-symbols-outlined text-[20px] text-primary">
+              account_circle
+            </span>
           </button>
         </div>
       </div>
@@ -45,12 +55,20 @@ const DocumentReadyPage = (): React.ReactElement => {
           {/* Success */}
           <div className="flex flex-col items-center mb-6">
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-green-600 text-[32px]">check_circle</span>
+              <span className="material-symbols-outlined text-green-600 text-[32px]">
+                check_circle
+              </span>
             </div>
-            <h2 className="text-xl font-bold text-on-surface mb-1">Your document is ready!</h2>
+            <h2 className="text-xl font-bold text-on-surface mb-1">
+              Your document is ready!
+            </h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-on-surface-variant">Scheme Application Letter</span>
-              <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">CGTMSE</span>
+              <span className="text-sm text-on-surface-variant">
+                Scheme Application Letter
+              </span>
+              <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                CGTMSE
+              </span>
             </div>
           </div>
 
@@ -86,14 +104,19 @@ const DocumentReadyPage = (): React.ReactElement => {
             onClick={handleDownload}
             disabled={isDownloading}
             className={cn(
-              'w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 mb-3',
-              isDownloading && 'opacity-80'
+              "w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 mb-3",
+              isDownloading && "opacity-80",
             )}
           >
-            <span className={cn('material-symbols-outlined text-[18px]', isDownloading && 'animate-bounce')}>
-              {isDownloading ? 'downloading' : 'download'}
+            <span
+              className={cn(
+                "material-symbols-outlined text-[18px]",
+                isDownloading && "animate-bounce",
+              )}
+            >
+              {isDownloading ? "downloading" : "download"}
             </span>
-            {isDownloading ? 'Downloading...' : 'Download PDF'}
+            {isDownloading ? "Downloading..." : "Download PDF"}
           </button>
 
           {/* Secondary Actions */}
@@ -102,14 +125,18 @@ const DocumentReadyPage = (): React.ReactElement => {
               type="button"
               className="h-10 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center gap-1.5"
             >
-              <span className="material-symbols-outlined text-[16px]">print</span>
+              <span className="material-symbols-outlined text-[16px]">
+                print
+              </span>
               Print
             </button>
             <button
               type="button"
               className="h-10 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center gap-1.5"
             >
-              <span className="material-symbols-outlined text-[16px]">share</span>
+              <span className="material-symbols-outlined text-[16px]">
+                share
+              </span>
               Share
             </button>
           </div>
@@ -117,14 +144,22 @@ const DocumentReadyPage = (): React.ReactElement => {
           {/* Next Step Banner */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
             <div className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-blue-500 text-[16px] mt-0.5">info</span>
+              <span className="material-symbols-outlined text-blue-500 text-[16px] mt-0.5">
+                info
+              </span>
               <div>
                 <p className="text-xs text-blue-800 leading-relaxed">
-                  Next step: Visit the scheme portal, attach this letter and required documents.
+                  Next step: Visit the scheme portal, attach this letter and
+                  required documents.
                 </p>
-                <a href="#" className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5 mt-1">
+                <a
+                  href="#"
+                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5 mt-1"
+                >
                   Open Portal
-                  <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                  <span className="material-symbols-outlined text-[12px]">
+                    arrow_forward
+                  </span>
                 </a>
               </div>
             </div>
