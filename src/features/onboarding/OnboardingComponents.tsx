@@ -268,6 +268,7 @@ export const CheckboxGroup = ({
         return (
           <label
             key={opt}
+            onClick={() => toggle(opt)}
             className={cn(
               "flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-[15px] font-medium transition-all",
               checked
@@ -314,6 +315,7 @@ export const RadioGroup = ({
       return (
         <label
           key={opt.value}
+          onClick={() => onChange(opt.value)}
           className={cn(
             "flex cursor-pointer items-center gap-3 rounded-lg border px-5 py-3 text-[15px] font-medium transition-all",
             active

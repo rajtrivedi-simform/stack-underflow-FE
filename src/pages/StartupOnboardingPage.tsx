@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCreateStartup } from "../hooks/useStartupMutations";
+import type { StartupPayload } from "../services/startup.service";
 import {
   OnboardingShell,
   OnboardingTitle,
@@ -340,14 +342,17 @@ const BackBtn = ({ onClick }: { onClick: () => void }) => (
 const BluePrimaryAction = ({
   onClick,
   children,
+  disabled,
 }: {
   onClick: () => void;
   children: React.ReactNode;
+  disabled?: boolean;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex h-[66px] w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-14 text-[23px] font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-95 md:w-[265px]"
+    disabled={disabled}
+    className="flex h-[66px] w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-14 text-[23px] font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 md:w-[265px]"
   >
     {children}
   </button>
@@ -358,6 +363,7 @@ const StartupOnboardingPage = (): React.ReactElement => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<StartupForm>(EMPTY);
+  const createStartup = useCreateStartup();
 
   const set = (field: keyof StartupForm, value: string | string[]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -368,8 +374,54 @@ const StartupOnboardingPage = (): React.ReactElement => {
     form.annual_turnover_range,
   );
 
-  const next = () =>
-    step < TOTAL_STEPS ? setStep((s) => s + 1) : navigate("/dashboard");
+  const buildPayload = (): StartupPayload => ({
+    startupName: form.business_name,
+    ownerName: "",
+    constitution: form.constitution,
+    sector: form.sector,
+    state: form.state,
+    district: form.district,
+    taluka: form.taluka,
+    city: form.city,
+    yearEstablished: Number(form.year_established) || 0,
+    productionStart: form.production_start,
+    startupStage: form.startup_stage,
+    startupDescription: form.startup_description,
+    annualTurnoverRange: form.annual_turnover_range,
+    investmentPlantMachinery: form.investment_plant_machinery,
+    investmentRaised: form.investment_raised,
+    investmentType: form.investment_type,
+    totalEmployees: Number(form.total_employees) || 0,
+    maleEmployees: Number(form.male_employees) || 0,
+    femaleEmployees: Number(form.female_employees) || 0,
+    coFounders: Number(form.co_founders) || 0,
+    gstStatus: form.gst_status,
+    udyamNumber: form.udyam_number,
+    gstin: form.gstin,
+    dpiitNumber: form.dpiit_number,
+    investors: form.investors,
+    existingRegistrations: form.existing_registrations,
+    pendingNotices: form.pending_notices === "yes",
+    ownerGender: form.owner_gender,
+    ownerAgeGroup: form.owner_age_group,
+    socialCategory: form.social_category,
+    education: form.education,
+    womenLed: form.women_led,
+    bplCard: form.bpl_card === "yes",
+    knownSchemes: form.known_schemes,
+    documentsOnFile: [],
+  });
+
+  const next = () => {
+    if (step < TOTAL_STEPS) {
+      setStep((s) => s + 1);
+    } else {
+      createStartup.mutate(buildPayload(), {
+        onSuccess: () => navigate("/dashboard"),
+        onError: (err) => console.error("Startup onboarding failed:", err),
+      });
+    }
+  };
   const back = () =>
     step > 1 ? setStep((s) => s - 1) : navigate("/onboarding");
 
@@ -819,14 +871,26 @@ const StartupOnboardingPage = (): React.ReactElement => {
               />
             </Field>
             <div className="flex gap-4 pt-2">
-              <BluePrimaryAction onClick={next}>
-                Complete Setup{" "}
-                <span className="material-symbols-outlined text-[22px]">
-                  check
-                </span>
+              <BluePrimaryAction
+                onClick={next}
+                disabled={createStartup.isPending}
+              >
+                {createStartup.isPending ? (
+                  "Saving…"
+                ) : (
+                  <>
+                    Complete Setup{" "}
+                    <span className="material-symbols-outlined text-[22px]">
+                      check
+                    </span>
+                  </>
+                )}
               </BluePrimaryAction>
               <BackBtn onClick={back} />
             </div>
+            {createStartup.isError && (
+              <p className="text-sm text-red-500">Something went wrong. Please try again.</p>
+            )}
           </div>
         </>
       )}
