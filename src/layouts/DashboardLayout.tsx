@@ -8,7 +8,9 @@ const navItems = [
   { label: 'Dashboard', icon: 'dashboard', to: '/dashboard' },
   { label: 'Compliance', icon: 'verified_user', to: '/dashboard/compliance' },
   { label: 'Schemes', icon: 'grid_view', to: '/dashboard/schemes' },
+  { label: 'Regulatory Feed', icon: 'feed', to: '/dashboard/regulatory-feed' },
   { label: 'Growth', icon: 'trending_up', to: '/dashboard/growth' },
+  { label: 'Applications', icon: 'assignment', to: '/dashboard/applications' },
 ];
 
 const DashboardLayout = (): React.ReactElement => {
@@ -90,20 +92,32 @@ const DashboardLayout = (): React.ReactElement => {
               )
             }
           >
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-            <span className="text-body-md font-medium text-on-surface">Settings</span>
+            {({ isActive }) => (
+              <>
+                <span className={cn('material-symbols-outlined text-[20px]', isActive ? 'text-primary' : 'text-on-surface-variant')}>settings</span>
+                <span className={cn('text-body-md font-medium', isActive ? 'text-primary font-semibold' : 'text-on-surface')}>Settings</span>
+              </>
+            )}
           </NavLink>
           <NavLink
             to="/dashboard/help"
             className="flex items-center gap-sm rounded-xl px-sm py-xs hover:bg-surface-container-low transition-colors text-on-surface-variant"
           >
             <span className="material-symbols-outlined text-[20px]">help_outline</span>
-            <span className="text-body-md font-medium text-on-surface">Help Center</span>
+            <span className="text-body-md font-medium text-on-surface">Support</span>
           </NavLink>
-          <button className="w-full h-10 bg-primary text-white text-[14px] font-semibold rounded-xl flex items-center justify-center gap-xs shadow-lg shadow-primary/20 hover:bg-primary-container transition-colors">
-            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
-            Get AI Insight
-          </button>
+          {/* PRO PLAN upgrade card */}
+          <div className="rounded-xl border border-primary/20 bg-primary/5 px-sm py-sm mt-xs">
+            <p className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 mb-0.5">
+              <span className="material-symbols-outlined text-[12px]">workspace_premium</span>
+              Pro Plan
+            </p>
+            <p className="text-[11px] text-on-surface-variant mb-sm">Unlock all AI Insights</p>
+            <button className="w-full h-8 bg-primary text-white text-[12px] font-semibold rounded-lg flex items-center justify-center gap-xs hover:bg-primary-container transition-colors">
+              <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+              Upgrade to Pro
+            </button>
+          </div>
         </div>
       </aside>
 
