@@ -39,7 +39,7 @@ export const RegisterForm = () => {
         onSuccess: (res) => {
           const { accessToken, refreshToken, user } = res.data;
           setAuth(user, accessToken, refreshToken);
-          navigate("/dashboard");
+          navigate("/onboarding");
         },
       },
     );

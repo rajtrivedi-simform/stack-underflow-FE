@@ -2,6 +2,10 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
+import RegisterPage from './pages/RegisterPage';
+import OnboardingPage from './pages/OnboardingPage';
+import BusinessOnboardingPage from './pages/BusinessOnboardingPage';
+import StartupOnboardingPage from './pages/StartupOnboardingPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import ExecutiveSummaryPage from './pages/dashboard/ExecutiveSummaryPage';
 import CompliancePage from './pages/dashboard/CompliancePage';
@@ -25,6 +29,10 @@ const App = (): React.ReactElement => {
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/onboarding/business" element={<BusinessOnboardingPage />} />
+          <Route path="/onboarding/startup" element={<StartupOnboardingPage />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<ExecutiveSummaryPage />} />
             <Route path="compliance" element={<CompliancePage />} />

@@ -10,6 +10,7 @@ type Option = {
 type OnboardingShellProps = {
   children: React.ReactNode;
   footer?: React.ReactNode;
+  panelBg?: string;
   progress: number;
   rightPanel: React.ReactNode;
   saveExitClassName?: string;
@@ -36,6 +37,7 @@ export const VyaparSetuWordmark = ({ variant = 'compact' }: { variant?: 'compact
 export const OnboardingShell = ({
   children,
   footer,
+  panelBg = '#edf3ff',
   progress,
   rightPanel,
   saveExitClassName,
@@ -76,7 +78,7 @@ export const OnboardingShell = ({
 
     <main className="mx-auto flex w-full max-w-[1536px] flex-1 flex-col md:flex-row">
       <section className="flex-1 overflow-y-auto px-6 py-16 md:px-[60px] md:py-[103px]">{children}</section>
-      <aside className="flex w-full flex-col border-l border-[#dde1ec] bg-[#edf3ff] px-8 py-16 md:w-[500px] md:px-[60px] md:py-[100px]">
+      <aside className="flex w-full flex-col border-l border-[#dde1ec] px-8 py-16 md:w-[500px] md:px-[60px] md:py-[100px]" style={{ backgroundColor: panelBg }}>
         {rightPanel}
       </aside>
     </main>
@@ -140,6 +142,122 @@ export const PrimaryAction = ({ children, className, ...props }: React.ButtonHTM
     {children}
   </button>
 );
+
+export const TextArea = ({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>): React.ReactElement => (
+  <textarea
+    className={cn(
+      'min-h-[120px] w-full rounded-lg border border-[#bfc0d8] bg-white px-8 py-4 text-[18px] outline-none transition-all placeholder:text-[#6f7586]/80 focus:border-primary focus:ring-4 focus:ring-primary/10 resize-none',
+      className
+    )}
+    {...props}
+  />
+);
+
+export const NumberInput = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>): React.ReactElement => (
+  <input
+    type="number"
+    min={0}
+    className={cn(
+      'h-[64px] w-full rounded-lg border border-[#bfc0d8] bg-white px-8 text-[20px] outline-none transition-all placeholder:text-[#6f7586]/80 focus:border-primary focus:ring-4 focus:ring-primary/10',
+      className
+    )}
+    {...props}
+  />
+);
+
+interface CheckboxGroupProps {
+  options: string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  columns?: 2 | 3;
+}
+
+export const CheckboxGroup = ({ options, selected, onChange, columns = 2 }: CheckboxGroupProps): React.ReactElement => {
+  const toggle = (val: string) => {
+    onChange(selected.includes(val) ? selected.filter(s => s !== val) : [...selected, val]);
+  };
+  return (
+    <div className={cn('grid gap-3', columns === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+      {options.map(opt => {
+        const checked = selected.includes(opt);
+        return (
+          <label
+            key={opt}
+            className={cn(
+              'flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-[15px] font-medium transition-all',
+              checked
+                ? 'border-[#3525cd] bg-[#3525cd]/5 text-[#3525cd]'
+                : 'border-[#bfc0d8] bg-white text-[#29283a] hover:border-[#3525cd]/40'
+            )}
+          >
+            <div className={cn(
+              'flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors',
+              checked ? 'border-[#3525cd] bg-[#3525cd]' : 'border-[#bfc0d8]'
+            )}>
+              {checked && <span className="material-symbols-outlined text-[14px] text-white">check</span>}
+            </div>
+            {opt}
+          </label>
+        );
+      })}
+    </div>
+  );
+};
+
+interface RadioGroupProps {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (val: string) => void;
+  inline?: boolean;
+}
+
+export const RadioGroup = ({ options, value, onChange, inline = false }: RadioGroupProps): React.ReactElement => (
+  <div className={cn('flex gap-3', inline ? 'flex-row flex-wrap' : 'flex-col')}>
+    {options.map(opt => {
+      const active = value === opt.value;
+      return (
+        <label
+          key={opt.value}
+          className={cn(
+            'flex cursor-pointer items-center gap-3 rounded-lg border px-5 py-3 text-[15px] font-medium transition-all',
+            active
+              ? 'border-[#3525cd] bg-[#3525cd]/5 text-[#3525cd]'
+              : 'border-[#bfc0d8] bg-white text-[#29283a] hover:border-[#3525cd]/40'
+          )}
+        >
+          <div className={cn(
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+            active ? 'border-[#3525cd]' : 'border-[#bfc0d8]'
+          )}>
+            {active && <div className="h-2.5 w-2.5 rounded-full bg-[#3525cd]" />}
+          </div>
+          {opt.label}
+        </label>
+      );
+    })}
+  </div>
+);
+
+export const MsmeBadge = ({ category }: { category: string }): React.ReactElement => {
+  const colorMap: Record<string, string> = {
+    'Micro Enterprise': 'bg-green-50 text-green-700 border-green-200',
+    'Small Enterprise': 'bg-blue-50 text-blue-700 border-blue-200',
+    'Medium Enterprise': 'bg-purple-50 text-purple-700 border-purple-200',
+    'Non-MSME': 'bg-orange-50 text-orange-700 border-orange-200',
+  };
+  const style = colorMap[category] ?? 'bg-surface-container text-on-surface-variant border-outline-variant';
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-[#bfc0d8] bg-[#f8f9ff] px-6 py-4">
+      <span className="material-symbols-outlined text-[22px] text-[#3525cd]">auto_awesome</span>
+      <div>
+        <p className="text-[13px] font-medium text-[#6f7586]">MSME Category (auto-computed)</p>
+        <p className={cn('mt-0.5 inline-flex rounded-full border px-3 py-0.5 text-[14px] font-bold', style)}>
+          {category || '—'}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export const SecondaryLinkAction = ({ children, className, to }: { children: React.ReactNode; className?: string; to: string }): React.ReactElement => (
   <Link
