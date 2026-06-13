@@ -1,52 +1,90 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginForm as LoginFormData } from '../../schemas/auth.schema';
-import { cn } from '../../utils/cn';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useLocation } from "react-router-dom";
+import { loginSchema, type LoginFormValues } from "../../schemas/auth.schema";
+import { useLogin } from "../../hooks/useAuthMutations";
+import { useAuthContext } from "../../context/AuthContext";
+import { cn } from "../../utils/cn";
 
 export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setAuth } = useAuthContext();
+  const loginMutation = useLogin();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormData): Promise<void> => {
-    console.log('Login data', data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const onSubmit = async (data: LoginFormValues): Promise<void> => {
+    loginMutation.mutate(
+      { identifier: data.identifier, password: data.password },
+      {
+        onSuccess: (res) => {
+          const { accessToken, refreshToken, user } = res.data;
+          setAuth(user, accessToken, refreshToken);
+          navigate("/dashboard");
+        },
+      },
+    );
   };
+
+  const apiError = loginMutation.error
+    ? ((loginMutation.error as any)?.response?.data?.message ??
+      "Login failed. Please try again.")
+    : null;
+
+  const stateError = location.state?.error as string | undefined;
+  const displayError = apiError || stateError;
 
   return (
     <form className="space-y-md" onSubmit={handleSubmit(onSubmit)}>
-      {/* Email Field */}
+      {/* Error Alert */}
+      {displayError && (
+        <div className="p-md rounded-xl bg-error/10 border border-error/20 flex items-start gap-md">
+          <span className="material-symbols-outlined text-error flex-shrink-0">
+            error
+          </span>
+          <div className="flex-1">
+            <p className="text-error font-body-md">{displayError}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Identifier Field */}
       <div className="space-y-xs focus-within:scale-[1.01] transition-transform duration-200">
         <label
           className="font-label-sm text-label-sm text-on-surface-variant ml-xs"
-          htmlFor="email"
+          htmlFor="identifier"
         >
-          Email
+          Email or Phone
         </label>
         <div className="relative group">
           <input
             className={cn(
               "w-full h-12 px-md rounded-xl border border-outline-variant bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all duration-200 font-body-md",
-              errors.email && "border-error focus:border-error focus:ring-error/10"
+              errors.identifier &&
+                "border-error focus:border-error focus:ring-error/10",
             )}
-            id="email"
-            placeholder="name@company.com"
-            type="email"
-            {...register('email')}
+            id="identifier"
+            placeholder="Email or phone number"
+            type="text"
+            {...register("identifier")}
           />
           <span className="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors">
-            mail
+            person
           </span>
         </div>
-        {errors.email && (
-          <p className="text-error text-xs ml-xs">{errors.email.message}</p>
+        {errors.identifier && (
+          <p className="text-error text-xs ml-xs">
+            {errors.identifier.message}
+          </p>
         )}
       </div>
 
@@ -70,19 +108,20 @@ export const LoginForm = () => {
           <input
             className={cn(
               "w-full h-12 px-md rounded-xl border border-outline-variant bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all duration-200 font-body-md",
-              errors.password && "border-error focus:border-error focus:ring-error/10"
+              errors.password &&
+                "border-error focus:border-error focus:ring-error/10",
             )}
             id="password"
             placeholder="••••••••"
-            type={showPassword ? 'text' : 'password'}
-            {...register('password')}
+            type={showPassword ? "text" : "password"}
+            {...register("password")}
           />
           <button
             className="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant/40 hover:text-on-surface-variant transition-colors"
             type="button"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? 'visibility_off' : 'visibility'}
+            {showPassword ? "visibility_off" : "visibility"}
           </button>
         </div>
         {errors.password && (
@@ -94,37 +133,14 @@ export const LoginForm = () => {
       <button
         className="w-full h-12 bg-primary text-white font-title-md text-title-md rounded-xl hover:bg-primary-container active:scale-[0.98] transition-all duration-200 shadow-lg shadow-primary/20 flex items-center justify-center gap-base disabled:opacity-70 disabled:cursor-not-allowed"
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || loginMutation.isPending}
       >
-        {isSubmitting ? 'Signing in...' : 'Sign In'}
-        {!isSubmitting && (
+        {loginMutation.isPending ? "Signing in..." : "Sign In"}
+        {!loginMutation.isPending && (
           <span className="material-symbols-outlined text-[20px]">
             arrow_forward
           </span>
         )}
-      </button>
-
-      {/* Divider */}
-      <div className="relative py-xs">
-        <div aria-hidden="true" className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-outline-variant/50"></div>
-        </div>
-        <div className="relative flex justify-center text-label-sm uppercase tracking-widest">
-          <span className="bg-surface-container-lowest px-md text-on-surface-variant/60">
-            OR
-          </span>
-        </div>
-      </div>
-
-      {/* Secondary CTA */}
-      <button
-        className="w-full h-12 border border-outline-variant bg-white text-on-surface font-title-md text-title-md rounded-xl hover:bg-surface-container-low transition-all duration-200 flex items-center justify-center gap-base"
-        type="button"
-      >
-        <span className="material-symbols-outlined text-[20px]">
-          person_outline
-        </span>
-        Continue as Guest
       </button>
     </form>
   );
